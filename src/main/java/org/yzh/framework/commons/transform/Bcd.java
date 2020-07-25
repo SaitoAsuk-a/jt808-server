@@ -1,60 +1,71 @@
 package org.yzh.framework.commons.transform;
 
+/**
+ * @author zhihao.ye (1527621790@qq.com)
+ * @home http://gitee.com/yezhihao/jt-server
+ */
 public class Bcd {
 
     /**
      * 8421BCD转String
      */
-    public static String encode8421String(byte[] data) {
-        StringBuilder result = new StringBuilder(data.length * 2);
-        for (int i = 0; i < data.length; i++) {
-            result.append((data[i] & 0xf0) >>> 4);
-            result.append(data[i] & 0x0f);
+    public static String bcdToStr(byte[] bcd) {
+        StringBuilder str = new StringBuilder(bcd.length * 2);
+        for (int i = 0; i < bcd.length; i++) {
+            str.append(bcd[i] >> 4 & 0xf).append(bcd[i] & 0xf);
         }
-        return result.toString();
+        return str.toString();
     }
 
     /**
      * String转8421BCD
      */
-    public static byte[] decode8421(String data) {
-        if ((data.length() & 0x1) == 1)
-            data = "0" + data;
-
-        byte result[] = new byte[data.length() / 2];
-        byte bytes[] = data.getBytes();
-        for (int i = 0; i < result.length; i++) {
-
-            byte high = asciiToBcd(bytes[i * 2]);
-            byte low = asciiToBcd(bytes[i * 2 + 1]);
-
-            result[i] = (byte) ((high << 4) | low);
+    public static byte[] strToBcd(String str) {
+        byte[] bytes = str.getBytes();
+        byte[] bcd = new byte[bytes.length / 2];
+        for (int i = 0; i < bcd.length; i++) {
+            bcd[i] = (byte) (bytes[2 * i] << 4 | (bytes[2 * i + 1] & 0xf));
         }
-        return result;
-    }
-
-    private static byte asciiToBcd(byte asc) {
-        if ((asc >= '0') && (asc <= '9'))
-            return (byte) (asc - '0');
-        else if ((asc >= 'A') && (asc <= 'F'))
-            return (byte) (asc - 'A' + 10);
-        else if ((asc >= 'a') && (asc <= 'f'))
-            return (byte) (asc - 'a' + 10);
-        else
-            return (byte) (asc - 48);
+        return bcd;
     }
 
     /**
-     * 左侧补齐
+     * 检查字节数组长度，填充或截断
      */
-    public static byte[] leftPad(byte[] bytes, int length, byte padByte) {
-        int i = length - bytes.length;
-        if (i <= 0)
-            return bytes;
-        byte[] result = new byte[length];
-        System.arraycopy(bytes, 0, result, i, bytes.length);
-        for (int j = 0; j < i; j++)
-            result[j] = padByte;
-        return result;
+    public static byte[] checkRepair(byte[] src, int length) {
+        int srcPos = src.length - length;
+
+        if (srcPos > 0) {
+            byte[] dest = new byte[length];
+            System.arraycopy(src, srcPos, dest, 0, length);
+            return dest;
+        } else if (srcPos < 0) {
+            byte[] dest = new byte[length];
+            System.arraycopy(src, 0, dest, -srcPos, src.length);
+            return dest;
+        }
+        return src;
+    }
+
+    public static String leftPad(String str, int size, char pad) {
+        int strLen = str.length();
+        int pads = size - strLen;
+        if (pads <= 0)
+            return str;
+
+        char[] padding = new char[pads];
+        for (int i = 0; i < pads; i++)
+            padding[i] = pad;
+        return new String(padding).concat(str);
+    }
+
+    public static String leftTrim(String str, char pad) {
+        char[] val = str.toCharArray();
+        int len = val.length;
+
+        int st = 0;
+        while (st < len && val[st] == pad)
+            st++;
+        return (st > 0 && st < len) ? str.substring(st) : str;
     }
 }

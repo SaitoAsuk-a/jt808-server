@@ -7,18 +7,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import java.io.IOException;
 
+/**
+ * @author zhihao.ye (1527621790@qq.com)
+ * @home http://gitee.com/yezhihao/jt-server
+ */
 public class JsonUtils {
 
     public static final ObjectMapper mapper = new ObjectMapper();
 
     static {
         mapper.configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true);
-        mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.setSerializationInclusion(Include.NON_NULL);
     }

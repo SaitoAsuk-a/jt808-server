@@ -1,4 +1,9 @@
-https://gitee.com/yezhihao/jt808-server
+ **
+
+### 技术交流群：906230542
+** 
+
+https://github.com/yezhihao/jt808-server 
 
  **JT808-Server 是基于Netty和Spring Boot框架，实现了JT/T 808部标协议的服务端程序；** 
 
@@ -8,11 +13,11 @@ https://gitee.com/yezhihao/jt808-server
 
 核心的注解有三个：
 
-@org.yzh.framework.annotation.Endpoint，标记TCP服务的接入点，相当于SpringMVC中的 @Controller；
+@org.yzh.framework.mvc.annotation.Endpoint，标记TCP服务的接入点，相当于SpringMVC中的 @Controller；
 
-@org.yzh.framework.annotation.Mapping，types中定义消息ID，相当于SpringMVC中 @RequestMapping；
+@org.yzh.framework.mvc.annotation.Mapping，types中定义消息ID，相当于SpringMVC中 @RequestMapping；
 
-@org.yzh.framework.annotation.Property，定义协议中各个字段的类型和占用的字节位置，相当于Hibernate中 @Column，
+@org.yzh.framework.mvc.annotation.Property，定义协议中各个字段的类型和占用的字节位置，相当于Hibernate中 @Column，
 
 MessageDecoder、MessageEncoder实现了对@Property的处理，
 DefaultHandlerMapper(没有Spring的环境中)、SpringHandlerMapper实现了对@Endpoint和@Mapping的处理。
@@ -62,3 +67,11 @@ org.yzh.jt808.codec.Elucidator（报文解释器）
 1	04		参数长度	4
 2	0000000b		参数值	[B@309e345f[PositionAttribute[id=18,length=6,bytesValue={0,0,0,0,0,0},value=<null>], PositionAttribute[id=17,length=1,bytesValue={0},value=<null>], PositionAttribute[id=227,length=4,bytesValue={0,0,0,11},value=<null>]]
 ```
+
+![使用发包工具模拟请求](https://images.gitee.com/uploads/images/2019/0705/162745_9becaf08_670717.png)
+使用发包工具模拟请求
+
+7e0200002d010000000000007b000000070000000600000001000000020003000400051904061915541206000000000000110100e3040000000bfe7e
+
+
+

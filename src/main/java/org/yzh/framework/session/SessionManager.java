@@ -1,5 +1,8 @@
 package org.yzh.framework.session;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -8,29 +11,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-public class SessionManager {
+/**
+ * @author zhihao.ye (1527621790@qq.com)
+ * @home http://gitee.com/yezhihao/jt-server
+ */
+public enum SessionManager {
 
-    private static volatile SessionManager instance = null;
-    // netty生成的sessionID和Session的对应关系
-    private Map<String, Session> sessionIdMap;
-    // 终端号和netty生成的sessionID的对应关系
-    private Map<String, String> terminalMap;
-
-    public SessionManager() {
-        this.sessionIdMap = new ConcurrentHashMap<>();
-        this.terminalMap = new ConcurrentHashMap<>();
-    }
+    Instance;
 
     public static SessionManager getInstance() {
-        if (instance == null) {
-            synchronized (SessionManager.class) {
-                if (instance == null) {
-                    instance = new SessionManager();
-                }
-            }
-        }
-        return instance;
+        return Instance;
     }
+
+    private static final Logger log = LoggerFactory.getLogger(SessionManager.class.getSimpleName());
+
+    private Map<String, Session> sessionIdMap = new ConcurrentHashMap<>();
+
+    private Map<String, Session> terminalIdMap = new ConcurrentHashMap<>();
 
     public boolean containsKey(String sessionId) {
         return sessionIdMap.containsKey(sessionId);
@@ -44,18 +41,15 @@ public class SessionManager {
         return sessionIdMap.get(sessionId);
     }
 
-    public Session getByMobileNumber(String mobileNumber) {
-        String sessionId = this.terminalMap.get(mobileNumber);
-        if (sessionId == null)
-            return null;
-        return this.getBySessionId(sessionId);
+    public Session getByTerminalId(String terminalId) {
+        return terminalIdMap.get(terminalId);
     }
 
-    public synchronized Session put(String key, Session value) {
-        if (value.getTerminalId() != null && !"".equals(value.getTerminalId().trim())) {
-            this.terminalMap.put(value.getTerminalId(), value.getId());
+    public synchronized Session put(String key, Session session) {
+        if (session.getTerminalId() != null && !"".equals(session.getTerminalId().trim())) {
+            this.terminalIdMap.put(session.getTerminalId(), session);
         }
-        return sessionIdMap.put(key, value);
+        return sessionIdMap.put(key, session);
     }
 
     public synchronized Session removeBySessionId(String sessionId) {
@@ -65,18 +59,18 @@ public class SessionManager {
         if (session == null)
             return null;
         if (session.getTerminalId() != null)
-            this.terminalMap.remove(session.getTerminalId());
+            this.terminalIdMap.remove(session.getTerminalId());
         return session;
     }
 
-    // public synchronized void remove(String sessionId) {
+    // public synchronized void release(String sessionId) {
     // if (sessionId == null)
     // return;
-    // Session session = sessionIdMap.remove(sessionId);
+    // Session session = sessionIdMap.release(sessionId);
     // if (session == null)
     // return;
     // if (session.getTerminalId() != null)
-    // this.terminalMap.remove(session.getTerminalId());
+    // this.terminalIdMap.release(session.getTerminalId());
     // try {
     // if (session.getChannel() != null) {
     // if (session.getChannel().isActive() || session.getChannel().isOpen()) {

@@ -3,16 +3,15 @@ package org.yzh.web.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.yzh.framework.message.PackageData;
-import org.yzh.web.endpoint.JT808Endpoint;
-import org.yzh.web.jt808.common.MessageId;
-import org.yzh.web.jt808.dto.*;
-import org.yzh.web.jt808.dto.basics.*;
+import org.yzh.framework.orm.model.RawMessage;
+import org.yzh.framework.session.MessageManager;
+import org.yzh.web.jt.basics.Header;
+import org.yzh.web.jt.basics.TerminalParameter;
+import org.yzh.web.jt.common.JT808;
+import org.yzh.web.jt.t808.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Api(description = "terminal api")
@@ -20,304 +19,310 @@ import java.util.List;
 @RequestMapping("terminal")
 public class TerminalController {
 
-    @Autowired
-    private JT808Endpoint endpoint;
+    private MessageManager messageManager = MessageManager.getInstance();
 
     @ApiOperation(value = "设置终端参数")
     @RequestMapping(value = "{terminalId}/parameters", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult updateParameters(@PathVariable("terminalId") String terminalId, @RequestBody List<TerminalParameter> parameters) {
-        ParameterSetting body = new ParameterSetting();
-        body.setParameters(parameters);
-        body.setHeader(new Header(MessageId.设置终端参数, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 updateParameters(@PathVariable("terminalId") String terminalId, @RequestBody List<TerminalParameter> parameters) {
+        T8103 message = new T8103();
+        message.setHeader(new Header(JT808.设置终端参数, terminalId));
+        message.setParameters(parameters);
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "查询终端参数/查询指定终端参数")
     @RequestMapping(value = "{terminalId}/parameters", method = RequestMethod.GET)
     @ResponseBody
-    public ParameterSettingReply findParameters(@PathVariable("terminalId") String terminalId,
-                                                @ApiParam("参数ID列表，为空则查询全部") @RequestParam(required = false) int[] idList) {
-        ParameterSetting body = new ParameterSetting();
+    public T0104 findParameters(@PathVariable("terminalId") String terminalId,
+                                @ApiParam("参数ID列表，为空则查询全部") @RequestParam(required = false) byte[] idList) {
+        T8106 body = new T8106();
+        Header message;
         if (idList != null) {
-            List<TerminalParameter> list = new ArrayList(idList.length);
-            for (int id : idList)
-                list.add(new TerminalParameter(id));
-            body.setParameters(list);
-            body.setHeader(new Header(MessageId.查询指定终端参数, terminalId));
+            body.setIds(idList);
+            message = new Header(JT808.查询指定终端参数, terminalId);
 
         } else {
-            body.setHeader(new Header(MessageId.查询终端参数, terminalId));
+            message = new Header(JT808.查询终端参数, terminalId);
         }
 
-        ParameterSettingReply response = (ParameterSettingReply) endpoint.send(body);
+        T0104 response = (T0104) messageManager.request(new RawMessage(message));
         return response;
     }
 
     @ApiOperation(value = "查询终端属性")
     @RequestMapping(value = "{terminalId}/attributes", method = RequestMethod.GET)
     @ResponseBody
-    public TerminalAttributeReply findAttributes(@PathVariable("terminalId") String terminalId) {
-        PackageData body = new ParameterSetting();
-        body.setHeader(new Header(MessageId.查询终端属性, terminalId));
-        TerminalAttributeReply response = (TerminalAttributeReply) endpoint.send(body, false);
+    public T0107 findAttributes(@PathVariable("terminalId") String terminalId) {
+        T8106 body = new T8106();
+        RawMessage message = new RawMessage(new Header(JT808.查询终端属性, terminalId));
+        T0107 response = (T0107) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "终端控制")
     @RequestMapping(value = "{terminalId}/control/terminal", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult terminalControl(@PathVariable("terminalId") String terminalId, @RequestBody TerminalControl body) {
-        body.setHeader(new Header(MessageId.终端控制, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 terminalControl(@PathVariable("terminalId") String terminalId, @RequestBody T8105 message) {
+        message.setHeader(new Header(JT808.终端控制, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "下发终端升级包")
     @RequestMapping(value = "{terminalId}/upgrade", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult vehicleControl(@PathVariable("terminalId") String terminalId, @RequestBody TerminalUpgradePack body) {
-        body.setHeader(new Header(MessageId.下发终端升级包, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 vehicleControl(@PathVariable("terminalId") String terminalId, @RequestBody T8108 message) {
+        message.setHeader(new Header(JT808.下发终端升级包, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "位置信息查询")
     @RequestMapping(value = "{terminalId}/position", method = RequestMethod.GET)
     @ResponseBody
-    public PositionReply position(@PathVariable("terminalId") String terminalId) {
-        PackageData body = new PackageData();
-        body.setHeader(new Header(MessageId.位置信息查询, terminalId));
-        PositionReply response = (PositionReply) endpoint.send(body);
+    public T0201_0500 position(@PathVariable("terminalId") String terminalId) {
+        RawMessage message = new RawMessage(new Header(JT808.位置信息查询, terminalId));
+        T0201_0500 response = (T0201_0500) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "临时位置跟踪控制")
     @RequestMapping(value = "{terminalId}/track", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult track(@PathVariable("terminalId") String terminalId, @RequestBody TemporaryMonitor body) {
-        body.setHeader(new Header(MessageId.临时位置跟踪控制, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 track(@PathVariable("terminalId") String terminalId, @RequestBody T8202 message) {
+        message.setHeader(new Header(JT808.临时位置跟踪控制, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "文本信息下发")
     @RequestMapping(value = "{terminalId}/text", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult sendText(@PathVariable("terminalId") String terminalId, @RequestBody TextMessage body) {
-        body.setHeader(new Header(MessageId.文本信息下发, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 sendText(@PathVariable("terminalId") String terminalId, @RequestBody T8300 message) {
+        message.setHeader(new Header(JT808.文本信息下发, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "事件设置")
     @RequestMapping(value = "{terminalId}/events", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult eventSetting(@PathVariable("terminalId") String terminalId, @RequestBody EventSetting body) {
-        body.setHeader(new Header(MessageId.事件设置, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 eventSetting(@PathVariable("terminalId") String terminalId, @RequestBody T8301 message) {
+        message.setHeader(new Header(JT808.事件设置, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "提问下发")
     @RequestMapping(value = "{terminalId}/question", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult sendQuestion(@PathVariable("terminalId") String terminalId, @RequestBody QuestionMessage body) {
-        body.setHeader(new Header(MessageId.提问下发, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 sendQuestion(@PathVariable("terminalId") String terminalId, @RequestBody T8302 message) {
+        message.setHeader(new Header(JT808.提问下发, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "信息点播菜单设置")
     @RequestMapping(value = "{terminalId}/information/menu", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult infoMenu(@PathVariable("terminalId") String terminalId, @RequestBody MessageSubSetting body) {
-        body.setHeader(new Header(MessageId.信息点播菜单设置, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 infoMenu(@PathVariable("terminalId") String terminalId, @RequestBody T8303 message) {
+        message.setHeader(new Header(JT808.信息点播菜单设置, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "信息服务")
     @RequestMapping(value = "{terminalId}/information/push", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult messageSubSetting(@PathVariable("terminalId") String terminalId, @RequestBody Information body) {
-        body.setHeader(new Header(MessageId.信息服务, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 messageSubSetting(@PathVariable("terminalId") String terminalId, @RequestBody T8304 message) {
+        message.setHeader(new Header(JT808.信息服务, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "电话回拨")
     @RequestMapping(value = "{terminalId}/call_phone", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult callPhone(@PathVariable("terminalId") String terminalId, @RequestBody CallPhone body) {
-        body.setHeader(new Header(MessageId.电话回拨, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 callPhone(@PathVariable("terminalId") String terminalId, @RequestBody T8400 message) {
+        message.setHeader(new Header(JT808.电话回拨, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "设置电话本")
     @RequestMapping(value = "{terminalId}/phone_book", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult phoneBook(@PathVariable("terminalId") String terminalId, @RequestBody PhoneBook body) {
-        body.setHeader(new Header(MessageId.设置电话本, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 phoneBook(@PathVariable("terminalId") String terminalId, @RequestBody T8401 message) {
+        message.setHeader(new Header(JT808.设置电话本, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "车辆控制")
     @RequestMapping(value = "{terminalId}/control/vehicle", method = RequestMethod.POST)
     @ResponseBody
-    public PositionReply vehicleControl(@PathVariable("terminalId") String terminalId, @RequestBody VehicleControl body) {
-        body.setHeader(new Header(MessageId.车辆控制, terminalId));
-        PositionReply response = (PositionReply) endpoint.send(body);
+    public T0201_0500 vehicleControl(@PathVariable("terminalId") String terminalId, @RequestBody T8500 message) {
+        message.setHeader(new Header(JT808.车辆控制, terminalId));
+        T0201_0500 response = (T0201_0500) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "删除区域")
     @RequestMapping(value = "{terminalId}/map_fence/remove/{type}", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult removeMapFence(@PathVariable("terminalId") String terminalId,
-                                       @ApiParam("区域类型:1.圆形 2.矩形 3.多边形") @PathVariable("type") int type,
-                                       @ApiParam("区域ID列表") @RequestBody Integer[] idList) {
-        MapFenceSetting body = new MapFenceSetting();
+    public T0001 removeMapFence(@PathVariable("terminalId") String terminalId,
+                                @ApiParam("区域类型:1.圆形 2.矩形 3.多边形") @PathVariable("type") int type,
+                                @ApiParam("区域ID列表") @RequestBody Integer[] idList) {
+        Header message;
+        T8601 body = new T8601();
         switch (type) {
             case 1:
-                body.setHeader(new Header(MessageId.删除圆形区域, terminalId));
+                message = new Header(JT808.删除圆形区域, terminalId);
                 break;
             case 2:
-                body.setHeader(new Header(MessageId.删除矩形区域, terminalId));
+                message = new Header(JT808.删除矩形区域, terminalId);
                 break;
             case 3:
-                body.setHeader(new Header(MessageId.删除多边形区域, terminalId));
+                message = new Header(JT808.删除多边形区域, terminalId);
                 break;
             default:
                 return null;
         }
         for (int id : idList)
-            body.addMapFence(id);
-        CommonResult response = (CommonResult) endpoint.send(body);
+            body.addItem(id);
+        T0001 response = (T0001) messageManager.request(new RawMessage<>(message));
         return response;
     }
 
     @ApiOperation(value = "设置圆形区域")
     @RequestMapping(value = "{terminalId}/map_fence_round", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult addMapFenceRound(@PathVariable("terminalId") String terminalId, @RequestBody MapFenceSetting<MapFenceRound> body) {
-        body.setHeader(new Header(MessageId.设置圆形区域, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 addMapFenceRound(@PathVariable("terminalId") String terminalId, @RequestBody T8600 message) {
+        message.setHeader(new Header(JT808.设置圆形区域, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "设置矩形区域")
     @RequestMapping(value = "{terminalId}/map_fence_rectangle", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult addMapFenceRectangle(@PathVariable("terminalId") String terminalId, @RequestBody MapFenceSetting<MapFenceRectangle> body) {
-        body.setHeader(new Header(MessageId.设置矩形区域, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 addMapFenceRectangle(@PathVariable("terminalId") String terminalId, @RequestBody T8602 message) {
+        message.setHeader(new Header(JT808.设置矩形区域, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "设置多边形区域")
     @RequestMapping(value = "{terminalId}/map_fence_polygon", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult addMapFencePolygon(@PathVariable("terminalId") String terminalId, @RequestBody MapFenceSetting<MapFencePolygon> body) {
-        body.setHeader(new Header(MessageId.设置多边形区域, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 addMapFencePolygon(@PathVariable("terminalId") String terminalId, @RequestBody T8604 message) {
+        message.setHeader(new Header(JT808.设置多边形区域, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "设置路线")
     @RequestMapping(value = "{terminalId}/route", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult addRoute(@PathVariable("terminalId") String terminalId, @RequestBody RouteSetting body) {
-        body.setHeader(new Header(MessageId.设置路线, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 addRoute(@PathVariable("terminalId") String terminalId, @RequestBody T8606 message) {
+        message.setHeader(new Header(JT808.设置路线, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "删除路线")
     @RequestMapping(value = "{terminalId}/route/remove", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult removeRoute(@PathVariable("terminalId") String terminalId, @ApiParam("区域ID列表") @RequestBody int[] idList) {
-        RouteSetting body = new RouteSetting();
+    public T0001 removeRoute(@PathVariable("terminalId") String terminalId, @ApiParam("区域ID列表") @RequestBody int[] idList) {
+        T8606 message = new T8606();
         for (int id : idList)
-            body.addPoint(id);
-        body.setHeader(new Header(MessageId.删除路线, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+            message.addPoint(id);
+        message.setHeader(new Header(JT808.删除路线, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "上报驾驶员身份信息请求")
     @RequestMapping(value = "{terminalId}/driver_identity", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult findDriverIdentityInfo(@PathVariable("terminalId") String terminalId) {
-        PackageData body = new ParameterSetting();
-        body.setHeader(new Header(MessageId.上报驾驶员身份信息请求, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body, false);
+    public T0001 findDriverIdentityInfo(@PathVariable("terminalId") String terminalId) {
+        T8106 message = new T8106();
+        message.setHeader(new Header(JT808.上报驾驶员身份信息请求, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "摄像头立即拍摄命令")
     @RequestMapping(value = "{terminalId}/camera_shot", method = RequestMethod.POST)
     @ResponseBody
-    public CameraShotReply cameraShot(@PathVariable("terminalId") String terminalId, @RequestBody CameraShot body) {
-        body.setHeader(new Header(MessageId.摄像头立即拍摄命令, terminalId));
-        CameraShotReply response = (CameraShotReply) endpoint.send(body);
+    public T0805 cameraShot(@PathVariable("terminalId") String terminalId, @RequestBody T8804 message) {
+        message.setHeader(new Header(JT808.摄像头立即拍摄命令, terminalId));
+        T0805 response = (T0805) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "存储多媒体数据检索")
     @RequestMapping(value = "{terminalId}/mediadata_query", method = RequestMethod.POST)
     @ResponseBody
-    public MediaDataQueryReply mediaDataQuery(@PathVariable("terminalId") String terminalId, @RequestBody MediaDataQuery body) {
-        body.setHeader(new Header(MessageId.存储多媒体数据检索, terminalId));
-        MediaDataQueryReply response = (MediaDataQueryReply) endpoint.send(body);
+    public T0802 mediaDataQuery(@PathVariable("terminalId") String terminalId, @RequestBody T8802 message) {
+        message.setHeader(new Header(JT808.存储多媒体数据检索, terminalId));
+        T0802 response = (T0802) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "存储多媒体数据上传命令")
     @RequestMapping(value = "{terminalId}/mediadata_report", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult mediaDataReportRequest(@PathVariable("terminalId") String terminalId, @RequestBody MediaDataReportRequest body) {
-        body.setHeader(new Header(MessageId.存储多媒体数据上传命令, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 mediaDataReportRequest(@PathVariable("terminalId") String terminalId, @RequestBody T8803 message) {
+        message.setHeader(new Header(JT808.存储多媒体数据上传命令, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "录音开始命令")
     @RequestMapping(value = "{terminalId}/sound_record", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult soundRecord(@PathVariable("terminalId") String terminalId, @RequestBody SoundRecord body) {
-        body.setHeader(new Header(MessageId.录音开始命令, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 soundRecord(@PathVariable("terminalId") String terminalId, @RequestBody T8804 message) {
+        message.setHeader(new Header(JT808.录音开始命令, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "单条存储多媒体数据检索上传命令")
     @RequestMapping(value = "{terminalId}/mediadata_command", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult mediaDataCommand(@PathVariable("terminalId") String terminalId, @RequestBody MediaDataCommand body) {
-        body.setHeader(new Header(MessageId.单条存储多媒体数据检索上传命令, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 mediaDataCommand(@PathVariable("terminalId") String terminalId, @RequestBody T8805 message) {
+        message.setHeader(new Header(JT808.单条存储多媒体数据检索上传命令, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "数据下行透传")
     @RequestMapping(value = "{terminalId}/passthrough", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult passthrough(@PathVariable("terminalId") String terminalId, @RequestBody PassthroughPack body) {
-        body.setHeader(new Header(MessageId.数据下行透传, terminalId));
-        CommonResult response = (CommonResult) endpoint.send(body);
+    public T0001 passthrough(@PathVariable("terminalId") String terminalId, @RequestBody T8900_0900 message) {
+        message.setHeader(new Header(JT808.数据下行透传, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 
     @ApiOperation(value = "平台RSA公钥")
     @RequestMapping(value = "{terminalId}/rsa_swap", method = RequestMethod.POST)
     @ResponseBody
-    public RSAPack rsaSwap(@PathVariable("terminalId") String terminalId, @RequestBody RSAPack body) {
-        body.setHeader(new Header(MessageId.平台RSA公钥, terminalId));
-        RSAPack response = (RSAPack) endpoint.send(body, false);
+    public T0A00_8A00 rsaSwap(@PathVariable("terminalId") String terminalId, @RequestBody T0A00_8A00 message) {
+        message.setHeader(new Header(JT808.平台RSA公钥, terminalId));
+        T0A00_8A00 response = (T0A00_8A00) messageManager.request(message);
+        return response;
+    }
+
+    @ApiOperation(value = "行驶记录仪数据采集命令")
+    @RequestMapping(value = "{terminalId}/data_record", method = RequestMethod.GET)
+    @ResponseBody
+    public T0001 getDataRecord(@PathVariable("terminalId") String terminalId) {
+        RawMessage message = new RawMessage(new Header(JT808.行驶记录仪数据采集命令, terminalId));
+        T0001 response = (T0001) messageManager.request(message);
         return response;
     }
 }
