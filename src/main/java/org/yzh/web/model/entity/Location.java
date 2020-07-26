@@ -8,10 +8,10 @@ public class Location {
     private Integer id;
     private String deviceId;
     private String plateNo;
-    private Integer alarmFlag;
+    private Integer warningMark;
     private Integer status;
-    private Double latitude;
-    private Double longitude;
+    private Integer latitude;
+    private Integer longitude;
     private Integer altitude;
     private Integer speed;
     private Integer direction;
@@ -44,12 +44,12 @@ public class Location {
         this.plateNo = plateNo;
     }
 
-    public Integer getAlarmFlag() {
-        return alarmFlag;
+    public Integer getWarningMark() {
+        return warningMark;
     }
 
-    public void setAlarmFlag(Integer alarmFlag) {
-        this.alarmFlag = alarmFlag;
+    public void setWarningMark(Integer warningMark) {
+        this.warningMark = warningMark;
     }
 
     public Integer getStatus() {
@@ -60,19 +60,19 @@ public class Location {
         this.status = status;
     }
 
-    public Double getLatitude() {
+    public Integer getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(Double latitude) {
+    public void setLatitude(Integer latitude) {
         this.latitude = latitude;
     }
 
-    public Double getLongitude() {
+    public Integer getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(Double longitude) {
+    public void setLongitude(Integer longitude) {
         this.longitude = longitude;
     }
 

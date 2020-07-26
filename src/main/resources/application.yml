@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:file:~/.h2/test;Auto_Server=True;IgnoreCase=True;Mode=MySql
+    url: jdbc:h2:file:~/.h2/jt;Auto_Server=True;IgnoreCase=True;Mode=MySql
     username: root
     password: 123@abc
     driver-class-name: org.h2.Driver

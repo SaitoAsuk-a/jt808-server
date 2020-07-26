@@ -33,10 +33,10 @@ public class LocationServiceImpl implements LocationService {
 
             location.setDeviceId(header.getTerminalId());
             location.setPlateNo("TODO");
-            location.setAlarmFlag(t.getWarningMark());
+            location.setWarningMark(t.getWarningMark());
             location.setStatus(t.getStatus());
-            location.setLatitude((double) (t.getLatitude() / 100000));
-            location.setLongitude((double) (t.getLongitude() / 10000));
+            location.setLatitude(t.getLatitude());
+            location.setLongitude(t.getLongitude());
             location.setAltitude(t.getAltitude());
             location.setSpeed(t.getSpeed());
             location.setDirection(t.getDirection());

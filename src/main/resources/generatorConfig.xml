@@ -11,7 +11,7 @@
             <property name="suppressDate" value="false"/>
         </commentGenerator>
 
-        <jdbcConnection driverClass="org.h2.Driver" connectionURL="jdbc:h2:file:~/.h2/test;Auto_Server=True;IgnoreCase=True;Mode=MySql" userId="root" password="123@abc"/>
+        <jdbcConnection driverClass="org.h2.Driver" connectionURL="jdbc:h2:file:~/.h2/jt;Auto_Server=True;IgnoreCase=True;Mode=MySql" userId="root" password="123@abc"/>
 
         <javaModelGenerator targetPackage="org.yzh.web.model.entity" targetProject="src\main\java">
             <property name="enableSubPackages" value="true"/>
