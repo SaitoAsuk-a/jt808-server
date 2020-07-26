@@ -28,6 +28,9 @@ public enum MessageManager {
 
     private SessionManager sessionManager = SessionManager.getInstance();
 
+    /**
+     * 发送通知类消息，不接收响应
+     */
     public boolean notify(AbstractMessage<? extends AbstractHeader> message) {
         AbstractHeader header = message.getHeader();
         String terminalId = header.getTerminalId();
@@ -41,6 +44,10 @@ public enum MessageManager {
         return true;
     }
 
+    /**
+     * 发送同步消息，接收响应
+     * 默认超时时间20秒
+     */
     public Object request(AbstractMessage<? extends AbstractHeader> message) {
         return request(message, 20000);
     }
@@ -70,11 +77,12 @@ public enum MessageManager {
         return null;
     }
 
-
+    /**
+     * 消息响应
+     */
     public boolean response(AbstractMessage message) {
         SynchronousQueue queue = topicSubscribers.get(getKey(message.getHeader()));
         if (queue != null)
-
             return queue.offer(message);
         return false;
     }

@@ -1,7 +1,7 @@
 package org.yzh.framework.netty;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
@@ -16,12 +16,11 @@ import org.yzh.framework.orm.model.AbstractMessage;
 import org.yzh.framework.session.Session;
 import org.yzh.framework.session.SessionManager;
 
-import java.lang.reflect.Type;
-
 /**
  * @author zhihao.ye (1527621790@qq.com)
  * @home http://gitee.com/yezhihao/jt-server
  */
+@ChannelHandler.Sharable
 public class TCPServerHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(TCPServerHandler.class.getSimpleName());
@@ -35,27 +34,42 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        if (!(msg instanceof AbstractMessage))
+            return;
+        AbstractMessage messageRequest = (AbstractMessage) msg;
         try {
-            AbstractMessage messageRequest = (AbstractMessage) msg;
             AbstractHeader header = messageRequest.getHeader();
             Channel channel = ctx.channel();
 
             Handler handler = handlerMapping.getHandler(header.getMessageId());
+            Class<?>[] types = handler.parameterTypes;
+            int length = types.length;
+            Object[] args = new Object[length];
 
-            Type[] types = handler.getTargetParameterTypes();
-            Session session = sessionManager.getBySessionId(Session.buildId(channel));
+            for (int i = 0; i < length; i++) {
+                Class<?> clazz = types[i];
 
-            AbstractMessage messageResponse;
-            if (types.length == 1) {
-                messageResponse = handler.invoke(messageRequest);
-            } else {
-                messageResponse = handler.invoke(messageRequest, session);
+                if (clazz.isAssignableFrom(Session.class)) {
+                    args[i] = sessionManager.getBySessionId(Session.buildId(channel));
+
+                } else {
+                    Class<?> superclass = clazz.getSuperclass();
+                    if (superclass != null) {
+                        if (superclass.isAssignableFrom(AbstractHeader.class))
+                            args[i] = messageRequest.getHeader();
+                        else if (superclass.isAssignableFrom(AbstractMessage.class))
+                            args[i] = messageRequest;
+                    }
+                }
             }
 
-            if (messageResponse != null) {
-                ChannelFuture future = channel.writeAndFlush(messageResponse).sync();
-            }
+            AbstractMessage messageResponse = handler.invoke(args);
+
+            if (messageResponse != null)
+                channel.writeAndFlush(messageResponse);
+        } catch (Exception e) {
+            log.warn(String.valueOf(messageRequest), e);
         } finally {
             ReferenceCountUtil.release(msg);
         }

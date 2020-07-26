@@ -12,27 +12,34 @@ import java.lang.reflect.Type;
  */
 public class Handler {
 
-    private Object targetObject;
-    private Method targetMethod;
-    private String desc;
+    public final Object targetObject;
+    public final Method targetMethod;
+    public final Class<?>[] parameterTypes;
+    public final String desc;
+
 
     public Handler(Object actionClass, Method actionMethod, String desc) {
         this.targetObject = actionClass;
         this.targetMethod = actionMethod;
         this.desc = desc;
+
+        Type[] types = actionMethod.getGenericParameterTypes();
+        Class<?>[] parameterTypes = new Class<?>[types.length];
+        for (int i = 0; i < types.length; i++)
+            parameterTypes[i] = (Class<?>) types[i];
+        this.parameterTypes = parameterTypes;
     }
 
     public Handler(Object targetObject, Method actionMethod) {
-        this.targetObject = targetObject;
-        this.targetMethod = actionMethod;
+        this(targetObject, actionMethod, null);
     }
 
     public <T extends AbstractMessage> T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
         return (T) targetMethod.invoke(targetObject, args);
     }
 
-    public Type[] getTargetParameterTypes() {
-        return targetMethod.getGenericParameterTypes();
+    public Class<?>[] getTargetParameterTypes() {
+        return parameterTypes;
     }
 
     @Override
