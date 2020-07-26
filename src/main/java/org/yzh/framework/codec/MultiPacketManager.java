@@ -26,7 +26,7 @@ public enum MultiPacketManager {
         int packageTotal = message.getPackageTotal();
         int packetNo = message.getPackageNo();
 
-        String key = new StringBuilder(18).append(terminalId).append("/").append(messageId).append("/").append(packageTotal).toString();
+        String key = new StringBuilder(21).append(terminalId).append("/").append(messageId).append("/").append(packageTotal).toString();
 
         MultiPacket multiPacket = multiPacketsMap.get(key);
         if (multiPacket == null)

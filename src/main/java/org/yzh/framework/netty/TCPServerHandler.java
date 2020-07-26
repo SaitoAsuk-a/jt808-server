@@ -43,24 +43,21 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
             Channel channel = ctx.channel();
 
             Handler handler = handlerMapping.getHandler(header.getMessageId());
-            Class<?>[] types = handler.parameterTypes;
-            int length = types.length;
-            Object[] args = new Object[length];
+            int[] types = handler.parameterTypes;
+            Object[] args = new Object[types.length];
 
-            for (int i = 0; i < length; i++) {
-                Class<?> clazz = types[i];
-
-                if (clazz.isAssignableFrom(Session.class)) {
-                    args[i] = sessionManager.getBySessionId(Session.buildId(channel));
-
-                } else {
-                    Class<?> superclass = clazz.getSuperclass();
-                    if (superclass != null) {
-                        if (superclass.isAssignableFrom(AbstractHeader.class))
-                            args[i] = messageRequest.getHeader();
-                        else if (superclass.isAssignableFrom(AbstractMessage.class))
-                            args[i] = messageRequest;
-                    }
+            for (int i = 0; i < types.length; i++) {
+                int type = types[i];
+                switch (type) {
+                    case Handler.MESSAGE:
+                        args[i] = messageRequest;
+                        break;
+                    case Handler.SESSION:
+                        args[i] = sessionManager.getBySessionId(Session.buildId(channel));
+                        break;
+                    case Handler.HEADER:
+                        args[i] = messageRequest.getHeader();
+                        break;
                 }
             }
 
