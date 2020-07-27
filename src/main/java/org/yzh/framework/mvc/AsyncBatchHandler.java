@@ -59,7 +59,7 @@ public class AsyncBatchHandler extends Handler {
                 try {
                     targetMethod.invoke(targetObject, messageList);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.warn(targetMethod.getName(), e);
                 }
                 messageList.clear();
             }
