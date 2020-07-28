@@ -1,18 +1,21 @@
 package org.yzh.web.mapper;
 
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
-import org.yzh.web.model.entity.Location;
+import org.yzh.web.model.entity.LocationDO;
+import org.yzh.web.model.vo.Location;
+import org.yzh.web.model.vo.LocationQuery;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-@Mapper
 @Repository
 public interface LocationMapper {
 
-    Location get(Integer id);
+    List<Location> find(LocationQuery query);
 
-    int batchInsert(@Param("list") List<Location> list);
+    Location get(@Param("deviceId") String deviceId, @Param("deviceTime") LocalDateTime deviceTime);
+
+    int batchInsert(@Param("list") List<LocationDO> list);
 
 }

@@ -7,10 +7,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.yzh.framework.orm.model.RawMessage;
 import org.yzh.framework.session.MessageManager;
-import org.yzh.web.jt.basics.Header;
-import org.yzh.web.jt.basics.TerminalParameter;
-import org.yzh.web.jt.common.JT808;
-import org.yzh.web.jt.t808.*;
+import org.yzh.protocol.basics.Header;
+import org.yzh.protocol.basics.TerminalParameter;
+import org.yzh.protocol.commons.JT808;
+import org.yzh.protocol.t808.*;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class TerminalController {
     public T0001 updateParameters(@PathVariable("terminalId") String terminalId, @RequestBody List<TerminalParameter> parameters) {
         T8103 message = new T8103();
         message.setHeader(new Header(JT808.设置终端参数, terminalId));
-        message.setParameters(parameters);
+        message.setItems(parameters);
         T0001 response = (T0001) messageManager.request(message);
         return response;
     }

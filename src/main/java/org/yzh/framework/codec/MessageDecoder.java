@@ -75,6 +75,7 @@ public abstract class MessageDecoder {
         int bodyLen = header.getBodyLength();
 
         if (header.isSubpackage()) {
+            log.info("分包消息{}", header);
 
             byte[] bytes = new byte[bodyLen];
             buf.readBytes(bytes);
@@ -103,6 +104,7 @@ public abstract class MessageDecoder {
             throw new RuntimeException(clazz.getName() + "未找到 BeanMetadata");
 
         T result = null;
+        boolean isEmpty = true;//防止死循环
         try {
             result = clazz.newInstance();
             for (FieldMetadata fieldMetadata : beanMetadata.fieldMetadataList) {
@@ -112,10 +114,13 @@ public abstract class MessageDecoder {
                     break;
                 Object value = read(buf, fieldMetadata, length, version);
                 fieldMetadata.writeMethod.invoke(result, value);
+                isEmpty = false;
             }
         } catch (Exception e) {
             log.error("解码异常：" + clazz.getName(), e);
         }
+        if (isEmpty)
+            return null;
         return result;
     }
 
@@ -140,6 +145,8 @@ public abstract class MessageDecoder {
             return decode(buf.readSlice(length), fieldMetadata.classType, version);
         }
         if (type == LIST) {
+            if (length <= 0)
+                return null;
             List list = new ArrayList();
             ByteBuf slice = buf.readSlice(length);
             while (slice.isReadable()) {
