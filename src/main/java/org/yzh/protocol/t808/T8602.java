@@ -16,24 +16,18 @@ import java.util.List;
 @Message(JT808.设置矩形区域)
 public class T8602 extends AbstractMessage<Header> {
 
-    /** 更新（先清空，后追加） */
-    public static final int Update = 0;
-    /** 追加 */
-    public static final int Append = 1;
-    /** 修改 */
-    public static final int Modify = 2;
-
-    private Integer operation;
+    /** @see org.yzh.protocol.commons.ShapeAction */
+    private Integer action;
     private Integer total;
     private List<Item> items;
 
     @Field(index = 0, type = DataType.BYTE, desc = "设置属性")
-    public Integer getOperation() {
-        return operation;
+    public Integer getAction() {
+        return action;
     }
 
-    public void setOperation(Integer operation) {
-        this.operation = operation;
+    public void setAction(Integer action) {
+        this.action = action;
     }
 
     @Field(index = 1, type = DataType.BYTE, desc = "区域总数")

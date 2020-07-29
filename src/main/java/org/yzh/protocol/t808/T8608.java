@@ -14,17 +14,21 @@ import java.util.List;
  * @author zhihao.ye (1527621790@qq.com)
  * @home http://gitee.com/yezhihao/jt-server
  */
-@Message({JT808.删除圆形区域, JT808.删除矩形区域, JT808.删除多边形区域, JT808.删除路线})
-public class T8601 extends AbstractMessage<Header> {
+@Message(JT808.查询区域或线路数据)
+public class T8608 extends AbstractMessage<Header> {
 
+    /** @see org.yzh.protocol.commons.Shape */
+    private Integer type;
     private Integer total;
     private List<Item> items;
 
-    public T8601() {
+    @Field(index = 0, type = DataType.BYTE, desc = "查询类型")
+    public Integer getType() {
+        return type;
     }
 
-    public T8601(Header header) {
-        super(header);
+    public void setType(Integer type) {
+        this.type = type;
     }
 
     @Field(index = 0, type = DataType.BYTE, desc = "区域总数")
