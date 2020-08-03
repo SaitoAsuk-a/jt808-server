@@ -59,7 +59,7 @@ public class JT808Endpoint {
 
     @Mapping(types = 查询服务器时间, desc = "查询服务器时间")
     public T8004 查询服务器时间(Header header, Session session) {
-        T8004 result = new T8004(DateUtils.FastDateFormatter.format(new Date(System.currentTimeMillis() + 50)));
+        T8004 result = new T8004(DateUtils.yyMMddHHmmss.format(new Date(System.currentTimeMillis() + 50)));
         result.setHeader(new Header(查询服务器时间应答, session.nextSerialNo(), header.getTerminalId()));
         return result;
     }
@@ -131,8 +131,8 @@ public class JT808Endpoint {
         Header header = message.getHeader();
     }
 
-    //异步批量处理 队列大小20000 最大累积200处理一次 最大等待时间5秒
-    @AsyncBatch(capacity = 20000, maxElements = 200, maxWait = 5000)
+    //异步批量处理默认 4线程 最大累积100条记录处理一次 最大等待时间1秒
+    @AsyncBatch
     @Mapping(types = 位置信息汇报, desc = "位置信息汇报")
     public void 位置信息汇报(List<T0200> list) {
         locationService.batchInsert(list);
