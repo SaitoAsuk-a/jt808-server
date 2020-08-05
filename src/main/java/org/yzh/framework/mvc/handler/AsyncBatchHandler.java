@@ -4,7 +4,6 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yzh.framework.commons.VirtualList;
-import org.yzh.framework.mvc.HandlerInterceptor;
 import org.yzh.framework.orm.model.AbstractMessage;
 import org.yzh.framework.session.Session;
 
@@ -67,18 +66,15 @@ public class AsyncBatchHandler extends Handler {
         }
     }
 
-    public void invoke(HandlerInterceptor interceptor, AbstractMessage request, Session session) throws Exception {
-        if (queue.offer(request)) {
-            interceptor.afterHandle(request, session);
-        } else {
-            interceptor.queueOverflow(request, session);
-        }
+    public AbstractMessage invoke(AbstractMessage request, Session session) {
+        queue.offer(request);
+        return null;
     }
 
     public void startInternal(boolean master) {
         AbstractMessage[] array = new AbstractMessage[maxElements];
         long logtime = 0;
-        long time = 0;
+        long starttime = 0;
 
         while (true) {
             AbstractMessage temp;
@@ -90,13 +86,15 @@ public class AsyncBatchHandler extends Handler {
             }
 
             if (i > 0) {
-                time = System.currentTimeMillis();
+                starttime = System.currentTimeMillis();
                 try {
                     targetMethod.invoke(targetObject, new VirtualList<>(array, i));
                 } catch (Exception e) {
                     log.warn(targetMethod.getName(), e);
                 }
-                log.warn("批处理耗时:{}ms,共{}条记录", System.currentTimeMillis() - time, i);
+                long time = System.currentTimeMillis() - starttime;
+                if (time > 1000L)
+                    log.warn("批处理耗时:{}ms,共{}条记录", time, i);
             }
 
             if (i < maxElements) {
@@ -107,8 +105,8 @@ public class AsyncBatchHandler extends Handler {
                 } catch (InterruptedException e) {
                 }
             } else if (master) {
-                if (logtime < time) {
-                    logtime = time + 5000L;
+                if (logtime < starttime) {
+                    logtime = starttime + 5000L;
 
                     int size = queue.size();
                     if (size > warningLines) {
