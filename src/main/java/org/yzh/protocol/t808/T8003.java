@@ -8,8 +8,8 @@ import org.yzh.protocol.basics.Header;
 import org.yzh.protocol.commons.JT808;
 
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 @Message({JT808.终端补传分包请求, JT808.服务器补传分包请求})
 public class T8003 extends AbstractMessage<Header> {
@@ -19,6 +19,10 @@ public class T8003 extends AbstractMessage<Header> {
     private byte[] items;
 
     public T8003() {
+    }
+
+    public T8003(Header header) {
+        super(header);
     }
 
     @Field(index = 0, type = DataType.WORD, desc = "原始消息流水号")

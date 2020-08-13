@@ -11,8 +11,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public enum MessageManager {
 
@@ -33,11 +33,13 @@ public enum MessageManager {
      */
     public boolean notify(AbstractMessage<? extends AbstractHeader> message) {
         AbstractHeader header = message.getHeader();
-        String terminalId = header.getTerminalId();
+        String clientId = header.getClientId();
 
-        Session session = sessionManager.get(terminalId);
-        if (session == null)
+        Session session = sessionManager.get(clientId);
+        if (session == null) {
+            log.info("<<<<<<<<<<消息发送失败,未注册,{}", message);
             return false;
+        }
 
         header.setSerialNo(session.nextSerialNo());
         session.writeObject(message);
@@ -54,24 +56,27 @@ public enum MessageManager {
 
     public <T extends AbstractMessage> T request(AbstractMessage<? extends AbstractHeader> request, Class<T> clazz, long timeout) {
         AbstractHeader header = request.getHeader();
-        String terminalId = header.getTerminalId();
+        String clientId = header.getClientId();
 
-        Session session = sessionManager.get(terminalId);
-        if (session == null)
+        Session session = sessionManager.get(clientId);
+        if (session == null) {
+            log.info("<<<<<<<<<<消息发送失败,未注册,{}", request);
             return null;
+        }
 
         header.setSerialNo(session.nextSerialNo());
 
         String key = getKey(header, clazz);
-        SynchronousQueue synchronousQueue = this.subscribe(key);
-        if (synchronousQueue == null)
-            return null;
+        SynchronousQueue syncQueue = this.subscribe(key);
+        if (syncQueue == null) {
+            log.info("<<<<<<<<<<请勿重复发送,{}", request);
+        }
 
         try {
             session.writeObject(request);
-            return (T) synchronousQueue.poll(timeout, TimeUnit.MILLISECONDS);
+            return (T) syncQueue.poll(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            log.warn("等待响应超时" + session, e);
+            log.warn("<<<<<<<<<<等待响应超时" + session, e);
         } finally {
             this.unsubscribe(key);
         }
@@ -89,7 +94,7 @@ public enum MessageManager {
     }
 
     private String getKey(AbstractHeader header, Class clazz) {
-        return header.getTerminalId() + "/" + clazz.getName();
+        return header.getClientId() + "/" + clazz.getName();
     }
 
     private SynchronousQueue subscribe(String key) {

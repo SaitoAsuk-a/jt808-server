@@ -16,8 +16,8 @@ import org.yzh.framework.codec.MessageDecoderWrapper;
 import org.yzh.framework.codec.MessageEncoderWrapper;
 
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public class TCPClient {
 
@@ -65,7 +65,7 @@ public class TCPClient {
 
     public void writeObject(Object message) {
         channel.writeAndFlush(message);
-        log.info("<<<<<<发送消息:{}", message);
+        log.info("<<<<<<<<<<发送消息:{}", message);
     }
 
     public synchronized TCPClient start() {

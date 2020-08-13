@@ -1,21 +1,26 @@
 package org.yzh.framework.mvc;
 
+import org.yzh.framework.commons.ClassUtils;
+import org.yzh.framework.mvc.annotation.Endpoint;
+
+import java.util.List;
+
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public class DefaultHandlerMapping extends AbstractHandlerMapping {
 
     public DefaultHandlerMapping(String endpointPackage) {
-        super(endpointPackage);
-        initial();
-    }
+        List<Class<?>> endpointClasses = ClassUtils.getClassList(endpointPackage, Endpoint.class);
 
-    public Object getEndpoint(Class<?> clazz) {
-        try {
-            return clazz.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        for (Class<?> endpointClass : endpointClasses) {
+            try {
+                Object bean = endpointClass.newInstance();
+                super.registerHandlers(bean);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

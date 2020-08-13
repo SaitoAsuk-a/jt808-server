@@ -16,9 +16,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 异步批量处理
- *
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public class AsyncBatchHandler extends Handler {
 
@@ -76,7 +75,7 @@ public class AsyncBatchHandler extends Handler {
         long logtime = 0;
         long starttime = 0;
 
-        while (true) {
+        for (; ; ) {
             AbstractMessage temp;
             int i = 0;
             while ((temp = queue.poll()) != null) {

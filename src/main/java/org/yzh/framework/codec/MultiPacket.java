@@ -2,68 +2,117 @@ package org.yzh.framework.codec;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * 分包消息
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public class MultiPacket {
 
-    private int messageId;
-    private String terminalId;
-    private int packageTotal;
+    private final int messageId;
+    private final String clientId;
+    private int serialNo = -1;
 
     private int retryCount;
-    private int createTime;
-    private int updateTime;
+    private final int createTime;
+    private int activeTime;
 
-    private Map<Integer, byte[]> packets = new TreeMap<>();
+    private int count = 0;
+    private final byte[][] packets;
 
-    public MultiPacket(int messageId, String terminalId, int packageTotal) {
+    public MultiPacket(int messageId, String clientId, int total) {
         this.messageId = messageId;
-        this.terminalId = terminalId;
-        this.packageTotal = packageTotal;
+        this.clientId = clientId;
         this.createTime = (int) (System.currentTimeMillis() / 1000);
-        this.updateTime = createTime;
+        this.activeTime = createTime;
+
+        this.packets = new byte[total][];
     }
 
-    public List<Integer> getNeedPacketNo() {
-        if (packets.size() >= packageTotal)
+    public byte[][] addAndGet(int packetNo, byte[] packetData) {
+        activeTime = (int) (System.currentTimeMillis() / 1000);
+
+        packetNo = packetNo - 1;
+        if (packets[packetNo] == null) {
+            packets[packetNo] = packetData;
+            count++;
+        }
+
+        if (isComplete())
+            return packets;
+        return null;
+    }
+
+    public List<Integer> getNotArrived() {
+        if (isComplete())
             return null;
 
-        retryCount++;
-        List<Integer> result = new ArrayList();
-        for (int i = 1; i <= packageTotal; i++) {
-            if (!packets.containsKey(i))
-                result.add(i);
+        int total = packets.length;
+        List<Integer> result = new ArrayList(total - count);
+        for (int i = 0; i < total; i++) {
+            if (packets[i] == null)
+                result.add(i + 1);
         }
         return result;
     }
 
-    public byte[][] addAndGet(int packetNo, byte[] packetData) {
-        updateTime = (int) (System.currentTimeMillis() / 1000);
-        packets.put(packetNo, packetData);
-
-        if (packets.size() == packageTotal) {
-            byte[][] result = new byte[packageTotal][];
-            int i = 0;
-            for (byte[] packet : packets.values())
-                result[i++] = packet;
-            return result;
-        }
-        return null;
+    public void addRetryCount(int retryCount) {
+        this.retryCount += retryCount;
+        this.activeTime = (int) (System.currentTimeMillis() / 1000);
     }
 
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public int getWaitTime() {
+        return (int) (System.currentTimeMillis() / 1000) - activeTime;
+    }
+
+    public int getTotalWaitTime() {
+        return (int) (System.currentTimeMillis() / 1000) - createTime;
+    }
+
+
+    public boolean isComplete() {
+        return count == packets.length;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public int getSerialNo() {
+        return serialNo;
+    }
+
+    public void setSerialNo(int serialNo) {
+        if (serialNo == -1)
+            this.serialNo = serialNo;
+    }
+
+    @Override
     public String toString() {
-        return new StringBuilder(60)
-                .append("设备号:").append(terminalId)
-                .append(",消息类型:").append(Integer.toHexString(messageId))
-                .append(",总包数:").append(this.packageTotal)
-                .append(",已收到:").append(this.packets.size())
-                .append(",重传次数:").append(this.retryCount)
-                .append(",耗时:").append(updateTime - createTime).append("秒").toString();
+        int length = packets.length;
+        final StringBuilder b = new StringBuilder(80 + (length * 3));
+        b.append('[');
+        b.append("clientId=").append(clientId);
+        b.append(", messageId=").append(Integer.toHexString(messageId));
+        b.append(", total=").append(length);
+        b.append(", count=").append(count);
+        b.append(", retryCount=").append(retryCount);
+        b.append(", time=").append(getTotalWaitTime());
+        b.append(", packets=");
+        b.append('{');
+        for (int i = 0; i < length; i++) {
+            if (packets[i] != null) b.append(i + 1);
+            else b.append(' ');
+            b.append(',');
+        }
+        b.setCharAt(b.length() - 1, '}');
+        b.append(']');
+        return b.toString();
     }
 }

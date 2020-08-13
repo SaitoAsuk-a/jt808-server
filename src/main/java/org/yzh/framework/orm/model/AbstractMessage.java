@@ -5,6 +5,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.Serializable;
 
+/**
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
+ */
 public abstract class AbstractMessage<T extends AbstractHeader> implements Serializable {
 
     private T header;
@@ -26,6 +30,9 @@ public abstract class AbstractMessage<T extends AbstractHeader> implements Seria
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        final StringBuilder sb = new StringBuilder(512);
+        sb.append(header).append(",");
+        sb.append(new ReflectionToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE, new StringBuffer(256), null, true, false, true).setExcludeFieldNames("header"));
+        return sb.toString();
     }
 }

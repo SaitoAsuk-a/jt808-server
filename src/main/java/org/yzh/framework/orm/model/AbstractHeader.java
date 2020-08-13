@@ -6,8 +6,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
  * 消息基类
- *
- * @author zhihao.ye (1527621790@qq.com)
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public abstract class AbstractHeader {
     private boolean verified = true;
@@ -25,8 +25,8 @@ public abstract class AbstractHeader {
     public abstract int getMessageId();
     /** 消息版本号 */
     public abstract int getVersionNo();
-    /** 终端唯一标识 */
-    public abstract String getTerminalId();
+    /** 客户端唯一标识 */
+    public abstract String getClientId();
     /** 消息流水号 */
     public abstract int getSerialNo();
 

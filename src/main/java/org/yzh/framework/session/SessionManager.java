@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public enum SessionManager {
 
@@ -18,21 +18,21 @@ public enum SessionManager {
         return Instance;
     }
 
-    private Map<String, Session> terminalIdMap = new ConcurrentHashMap<>();
+    private Map<String, Session> sessionMap = new ConcurrentHashMap<>();
 
     private ChannelFutureListener remover = future -> {
         Session session = future.channel().attr(Session.KEY).get();
         if (session != null)
-            terminalIdMap.remove(session.getTerminalId());
+            sessionMap.remove(session.getClientId());
     };
 
-    public Session get(String terminalId) {
-        return terminalIdMap.get(terminalId);
+    public Session get(String clientId) {
+        return sessionMap.get(clientId);
     }
 
-    protected void put(String terminalId, Session session) {
+    protected void put(String clientId, Session session) {
         Channel channel = session.channel;
-        boolean added = terminalIdMap.putIfAbsent(terminalId, session) == null;
+        boolean added = sessionMap.putIfAbsent(clientId, session) == null;
         if (added) {
             channel.closeFuture().addListener(remover);
         }

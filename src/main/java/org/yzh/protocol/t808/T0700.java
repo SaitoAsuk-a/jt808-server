@@ -10,13 +10,16 @@ import org.yzh.protocol.commons.JT808;
 /**
  * @author yezhihao
  * @home https://gitee.com/yezhihao/jt808-server
- * 该消息2019版本已删除
  */
-@Message(JT808.提问应答)
-public class T0302 extends AbstractMessage<Header> {
+@Message(JT808.行驶记录数据上传)
+public class T0700 extends AbstractMessage<Header> {
 
     private int serialNo;
-    private int answerId;
+    private int command;
+    private byte[] data;
+
+    public T0700() {
+    }
 
     @Field(index = 0, type = DataType.WORD, desc = "应答流水号")
     public int getSerialNo() {
@@ -27,12 +30,21 @@ public class T0302 extends AbstractMessage<Header> {
         this.serialNo = serialNo;
     }
 
-    @Field(index = 2, type = DataType.BYTE, desc = "答案ID")
-    public int getAnswerId() {
-        return answerId;
+    @Field(index = 2, type = DataType.BYTE, desc = "命令字")
+    public int getCommand() {
+        return command;
     }
 
-    public void setAnswerId(int answerId) {
-        this.answerId = answerId;
+    public void setCommand(int command) {
+        this.command = command;
+    }
+
+    @Field(index = 3, type = DataType.BYTES, desc = "数据块")
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
     }
 }

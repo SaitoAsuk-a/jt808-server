@@ -2,6 +2,8 @@ package org.yzh.framework.session;
 
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yzh.framework.orm.model.AbstractHeader;
 
 import java.util.Collection;
@@ -10,10 +12,12 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 public class Session {
+
+    private static final Logger log = LoggerFactory.getLogger(Session.class.getSimpleName());
 
     public static final AttributeKey<Session> KEY = AttributeKey.newInstance(Session.class.getName());
 
@@ -21,7 +25,7 @@ public class Session {
 
     private volatile int serialNo = 0;
     private boolean registered = false;
-    private String terminalId;
+    private String clientId;
 
     private final long creationTime;
     private long lastAccessedTime;
@@ -37,6 +41,7 @@ public class Session {
 
 
     public void writeObject(Object message) {
+        log.info("<<<<<<<<<<消息下发{},{}", this, message);
         channel.writeAndFlush(message);
     }
 
@@ -62,13 +67,13 @@ public class Session {
      * 注册到SessionManager
      */
     public void register(AbstractHeader header) {
-        this.terminalId = header.getTerminalId();
+        this.clientId = header.getClientId();
         this.registered = true;
-        SessionManager.Instance.put(terminalId, this);
+        SessionManager.Instance.put(clientId, this);
     }
 
-    public String getTerminalId() {
-        return terminalId;
+    public String getClientId() {
+        return clientId;
     }
 
 
@@ -121,9 +126,11 @@ public class Session {
 
     @Override
     public String toString() {
-        return "[ip=" + channel.remoteAddress() +
-                ", terminalId=" + terminalId +
-                ", registered=" + registered +
-                ']';
+        final StringBuilder sb = new StringBuilder(66);
+        sb.append("[ip=").append(channel.remoteAddress());
+        sb.append(", cid=").append(clientId);
+        sb.append(", reg=").append(registered);
+        sb.append(']');
+        return sb.toString();
     }
 }

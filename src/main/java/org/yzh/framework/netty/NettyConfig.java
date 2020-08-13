@@ -3,9 +3,15 @@ package org.yzh.framework.netty;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.yzh.framework.codec.MessageDecoder;
 import org.yzh.framework.codec.MessageEncoder;
+import org.yzh.framework.codec.MultiPacketListener;
+import org.yzh.framework.codec.MultiPacketManager;
 import org.yzh.framework.mvc.HandlerInterceptor;
 import org.yzh.framework.mvc.HandlerMapping;
 
+/**
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
+ */
 public class NettyConfig {
 
     protected final int port;
@@ -16,6 +22,7 @@ public class NettyConfig {
     protected final ChannelInboundHandlerAdapter adapter;
     protected final HandlerMapping handlerMapping;
     protected final HandlerInterceptor handlerInterceptor;
+    protected final MultiPacketListener multiPacketListener;
 
     private NettyConfig(int port,
                         int maxFrameLength,
@@ -23,7 +30,8 @@ public class NettyConfig {
                         MessageDecoder decoder,
                         MessageEncoder encoder,
                         HandlerMapping handlerMapping,
-                        HandlerInterceptor handlerInterceptor
+                        HandlerInterceptor handlerInterceptor,
+                        MultiPacketListener multiPacketListener
     ) {
         this.port = port;
         this.maxFrameLength = maxFrameLength;
@@ -33,6 +41,8 @@ public class NettyConfig {
         this.handlerMapping = handlerMapping;
         this.handlerInterceptor = handlerInterceptor;
         this.adapter = new TCPServerHandler(this.handlerMapping, this.handlerInterceptor);
+        this.multiPacketListener = multiPacketListener;
+        MultiPacketManager.getInstance().addListener(multiPacketListener);
     }
 
     public static NettyConfig.Builder custom() {
@@ -48,6 +58,7 @@ public class NettyConfig {
         private MessageEncoder encoder;
         private HandlerMapping handlerMapping;
         private HandlerInterceptor handlerInterceptor;
+        private MultiPacketListener multiPacketListener;
 
         public Builder() {
         }
@@ -87,6 +98,11 @@ public class NettyConfig {
             return this;
         }
 
+        public Builder setMultiPacketListener(MultiPacketListener multiPacketListener) {
+            this.multiPacketListener = multiPacketListener;
+            return this;
+        }
+
         public NettyConfig build() {
             return new NettyConfig(
                     this.port,
@@ -95,7 +111,8 @@ public class NettyConfig {
                     this.decoder,
                     this.encoder,
                     this.handlerMapping,
-                    this.handlerInterceptor
+                    this.handlerInterceptor,
+                    this.multiPacketListener
             );
         }
     }

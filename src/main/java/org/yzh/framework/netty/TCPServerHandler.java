@@ -15,8 +15,8 @@ import org.yzh.framework.orm.model.AbstractMessage;
 import org.yzh.framework.session.Session;
 
 /**
- * @author zhihao.ye (1527621790@qq.com)
- * @home http://gitee.com/yezhihao/jt-server
+ * @author yezhihao
+ * @home https://gitee.com/yezhihao/jt808-server
  */
 @ChannelHandler.Sharable
 public class TCPServerHandler extends ChannelInboundHandlerAdapter {
@@ -49,10 +49,10 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
                     return;
 
                 response = handler.invoke(request, session);
-                if (handler.hasReturn) {
-                    interceptor.afterHandle(request, response, session);
-                } else {
+                if (handler.returnVoid) {
                     response = interceptor.successful(request, session);
+                } else {
+                    interceptor.afterHandle(request, response, session);
                 }
             } else {
                 response = interceptor.notSupported(request, session);
@@ -68,20 +68,20 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         Session session = new Session(ctx.channel());
-        log.info(">>>>>>>>>终端连接{}", session);
+        log.info(">>>>>终端连接{}", session);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         Session session = ctx.channel().attr(Session.KEY).get();
-        log.info("<<<<<<<<<断开连接{}", session);
+        log.info("<<<<<断开连接{}", session);
         session.invalidate();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
         Session session = ctx.channel().attr(Session.KEY).get();
-        log.info("<<<<<<<<<发生异常" + session, e);
+        log.info("<<<<<发生异常" + session, e);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
             IdleState state = event.state();
             if (state == IdleState.READER_IDLE || state == IdleState.WRITER_IDLE) {
                 Session session = ctx.channel().attr(Session.KEY).get();
-                log.warn("服务器主动断开连接{}", session);
+                log.warn("<<<<<主动断开连接{}", session);
                 ctx.close();
             }
         }

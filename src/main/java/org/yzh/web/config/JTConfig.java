@@ -12,6 +12,7 @@ import org.yzh.framework.netty.TCPServer;
 import org.yzh.protocol.codec.JTMessageDecoder;
 import org.yzh.protocol.codec.JTMessageEncoder;
 import org.yzh.web.endpoint.JTHandlerInterceptor;
+import org.yzh.web.endpoint.JTMultiPacketListener;
 
 @Configuration
 public class JTConfig implements InitializingBean, DisposableBean {
@@ -21,7 +22,7 @@ public class JTConfig implements InitializingBean, DisposableBean {
 
     @Bean
     public TCPServer tcpServer() {
-        NettyConfig jtConfig = new NettyConfig.Builder()
+        NettyConfig jtConfig = NettyConfig.custom()
                 .setPort(7611)
                 .setMaxFrameLength(1024)
                 .setDelimiters(new byte[]{0x7e})
@@ -29,6 +30,7 @@ public class JTConfig implements InitializingBean, DisposableBean {
                 .setEncoder(new JTMessageEncoder("org.yzh.protocol"))
                 .setHandlerMapping(handlerMapping())
                 .setHandlerInterceptor(handlerInterceptor())
+                .setMultiPacketListener(multiPacketListener())
                 .build();
         return new TCPServer(jtConfig);
     }
@@ -39,8 +41,13 @@ public class JTConfig implements InitializingBean, DisposableBean {
     }
 
     @Bean
+    public JTMultiPacketListener multiPacketListener() {
+        return new JTMultiPacketListener(10);
+    }
+
+    @Bean
     public HandlerMapping handlerMapping() {
-        return new SpringHandlerMapping("org.yzh.web.endpoint");
+        return new SpringHandlerMapping();
     }
 
     @Override

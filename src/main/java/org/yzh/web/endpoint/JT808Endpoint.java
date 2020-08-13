@@ -57,7 +57,7 @@ public class JT808Endpoint {
     @Mapping(types = 查询服务器时间, desc = "查询服务器时间")
     public T8004 查询服务器时间(Header header, Session session) {
         T8004 result = new T8004(DateUtils.yyMMddHHmmss.format(new Date(System.currentTimeMillis() + 50)));
-        result.setHeader(new Header(查询服务器时间应答, session.nextSerialNo(), header.getTerminalId()));
+        result.setHeader(new Header(查询服务器时间应答, session.nextSerialNo(), header.getClientId()));
         return result;
     }
 
@@ -69,6 +69,10 @@ public class JT808Endpoint {
     @Mapping(types = 终端注册, desc = "终端注册")
     public T8100 register(T0100 message, Session session) {
         Header header = message.getHeader();
+        if (message.getPlateNo() == null) {
+            log.warn(">>>>>>>>>>不支持2011版本协议{},{}", session, message);
+            return null;
+        }
 
         T8100 result = new T8100(session.nextSerialNo(), header.getMobileNo());
         result.setSerialNo(header.getSerialNo());
@@ -161,8 +165,8 @@ public class JT808Endpoint {
         Header header = (Header) message.getHeader();
     }
 
-    @Mapping(types = 行驶记录仪数据上传, desc = "行驶记录仪数据上传")
-    public void 行驶记录仪数据上传(AbstractMessage message, Session session) {
+    @Mapping(types = 行驶记录数据上传, desc = "行驶记录仪数据上传")
+    public void 行驶记录仪数据上传(T0700 message, Session session) {
         Header header = (Header) message.getHeader();
     }
 
